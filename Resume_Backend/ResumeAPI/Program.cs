@@ -8,9 +8,46 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ─── Environment-aware Configuration Helpers ─────────────────────────────────
+static string? FirstNonEmpty(params string?[] values)
+{
+    return values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+}
+
+var defaultConnection = FirstNonEmpty(
+    builder.Configuration.GetConnectionString("DefaultConnection"),
+    builder.Configuration["ConnectionStrings:DefaultConnection"],
+    builder.Configuration["DATABASE_URL"]
+);
+
+if (string.IsNullOrWhiteSpace(defaultConnection))
+{
+    throw new InvalidOperationException(
+        "Database connection string is missing. Set ConnectionStrings__DefaultConnection or DATABASE_URL.");
+}
+
+var jwtToken = FirstNonEmpty(
+    builder.Configuration["AppSettings:Token"],
+    builder.Configuration["AppSettings__Token"],
+    builder.Configuration["JWT_SECRET"]
+);
+
+if (string.IsNullOrWhiteSpace(jwtToken) || jwtToken.Length < 32)
+{
+    throw new InvalidOperationException(
+        "JWT secret is missing or too short. Set AppSettings__Token or JWT_SECRET (minimum 32 chars).");
+}
+
+var aiServiceUrl = FirstNonEmpty(
+    builder.Configuration.GetSection("AiService:BaseUrl").Value,
+    builder.Configuration["AiService__BaseUrl"],
+    builder.Configuration["AI_SERVICE_URL"],
+    "http://localhost:8000"
+)!;
+
 // ─── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(defaultConnection));
 
 // ─── Application Services ──────────────────────────────────────────────────────
 builder.Services.AddMemoryCache();
@@ -28,7 +65,6 @@ builder.Services.AddScoped<IResumeGenerationService, ResumeGenerationService>();
 builder.Services.AddScoped<IUploadModerationService, UploadModerationService>();
 
 // ─── AI Service (Python FastAPI) ───────────────────────────────────────────────
-var aiServiceUrl = builder.Configuration.GetSection("AiService:BaseUrl").Value ?? "http://localhost:8000";
 builder.Services.AddHttpClient<IAiAnalysisService, AiAnalysisService>(client =>
 {
     client.BaseAddress = new Uri(aiServiceUrl);
@@ -42,8 +78,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtToken)),
             ValidateIssuer = false,
             ValidateAudience = false
         };
@@ -62,7 +97,7 @@ builder.Services.AddSwaggerGen(c =>
         Version     = "v1",
         Description = "Upload resumes, extract skills, match jobs, detect skill gaps, and get learning resources."
     });
-    
+
     // Add JWT support to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -93,15 +128,27 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ─── CORS ──────────────────────────────────────────────────────────────────────
+var frontendUrl = builder.Configuration["FRONTEND_URL"];
+var allowedOrigins = new List<string>
+{
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174"
+};
+
+if (!string.IsNullOrWhiteSpace(frontendUrl))
+{
+    allowedOrigins.Add(frontendUrl);
+}
+
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174")
+        policy.WithOrigins(allowedOrigins.Distinct().ToArray())
               .AllowAnyMethod()
               .AllowAnyHeader()));
 
 var app = builder.Build();
-
-
 
 // ─── Middleware Pipeline ───────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
@@ -123,4 +170,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
