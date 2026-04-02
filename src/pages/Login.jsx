@@ -64,6 +64,11 @@ const Login = () => {
                   className={`w-full bg-transparent border-b-2 ${error ? 'border-red-400/50 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-cyan-500 dark:focus:border-cyan-400'} py-3 px-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-colors duration-300 font-medium`}
                 />
               </div>
+              <div className="flex justify-end text-sm mt-1">
+                <Link to="/forgot-password" className="text-xs font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-cyan-400 transition-colors">
+                  Forgot Password?
+                </Link>
+              </div>
               {error && (
                 <div className="text-red-500 text-xs font-bold mt-2 px-2">
                   {error}

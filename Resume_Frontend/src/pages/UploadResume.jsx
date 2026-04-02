@@ -4,15 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import UploadBox from '../components/UploadBox';
 import PrimaryButton from '../components/PrimaryButton';
 import ATSTerminal from '../components/ATSTerminal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { runAnalysis } from '../services/api';
 import DotPatternBackground from '../components/DotPatternBackground';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 const UploadResume = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { logout } = useAuth();
   
   const [isUploading, setIsUploading] = useState(false);
   const [resumeUploaded, setResumeUploaded] = useState(false);
@@ -24,6 +26,7 @@ const UploadResume = () => {
   // Store the resumeId and extractedSkills returned by the backend after upload
   const [resumeId, setResumeId] = useState(null);
   const [extractedSkills, setExtractedSkills] = useState([]);
+  const [blockedResponse, setBlockedResponse] = useState(null);
 
   // Called when the resume PDF/DOCX is successfully uploaded and processed by the backend.
   // The UploadBox component passes back response.data from the API call.
@@ -36,6 +39,12 @@ const UploadResume = () => {
       setExtractedSkills(uploadData.extractedSkills || []);
     }
     showToast('Resume processed successfully. AI models ready for matching.', 'success');
+  };
+
+  const handleUploadError = (errData) => {
+    if (errData?.action === 'blocked' || errData?.action === 'force_logout') {
+      setBlockedResponse(errData);
+    }
   };
 
   const handleUploadStart = () => setIsUploading(true);
@@ -101,6 +110,13 @@ const UploadResume = () => {
   };
 
 
+  // Handle enforced blocked state from Moderation System
+  useEffect(() => {
+    if (blockedResponse?.action === 'force_logout') {
+      logout();
+    }
+  }, [blockedResponse, logout]);
+
   // Show a loading screen while analyzing
   if (isUploading && resumeUploaded) {
     return (
@@ -113,6 +129,47 @@ const UploadResume = () => {
            </div>
            <ATSTerminal />
         </div>
+      </div>
+    );
+  }
+
+  if (blockedResponse) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 transition-colors duration-700">
+        <DotPatternBackground />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="relative z-10 max-w-lg w-full bg-white dark:bg-slate-900 border-2 border-red-500/50 rounded-[32px] p-8 shadow-2xl space-y-6 text-center"
+        >
+          <div className="mx-auto w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-full flex items-center justify-center mb-6">
+            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
+            {blockedResponse.action === 'force_logout' ? 'Account Suspended' : 'Upload Blocked'}
+          </h2>
+          <p className="text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-500/10 p-4 rounded-2xl border border-red-200 dark:border-red-500/20">
+            {blockedResponse.error}
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium px-4">
+            Our systems detected a policy violation. Abusive, inappropriate, or non-resume content was submitted. This event has been logged.
+          </p>
+          
+          <PrimaryButton 
+            onClick={() => {
+              if (blockedResponse.action === 'force_logout') {
+                navigate('/login');
+              } else {
+                setBlockedResponse(null);
+              }
+            }} 
+            className="w-full mt-4 !bg-slate-800 hover:!bg-slate-700 dark:!bg-slate-100 dark:hover:!bg-slate-300 dark:text-slate-900 outline-none border-none ring-0 focus:ring-0 active:outline-none"
+          >
+            {blockedResponse.action === 'force_logout' ? 'Return to Login' : 'Understand & Retry'}
+          </PrimaryButton>
+        </motion.div>
       </div>
     );
   }
@@ -159,6 +216,7 @@ const UploadResume = () => {
                   onUploadSuccess={handleUploadSuccess}
                   onUploadStart={handleUploadStart}
                   onUploadEnd={handleUploadEnd}
+                  onUploadError={handleUploadError}
                   onDragOver={() => {}} 
                 />
                 {resumeUploaded && (

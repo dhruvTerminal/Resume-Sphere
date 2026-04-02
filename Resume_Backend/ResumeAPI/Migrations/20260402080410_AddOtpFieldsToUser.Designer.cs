@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ResumeAPI.Data;
@@ -11,9 +12,11 @@ using ResumeAPI.Data;
 namespace ResumeAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260402080410_AddOtpFieldsToUser")]
+    partial class AddOtpFieldsToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,66 +199,6 @@ namespace ResumeAPI.Migrations
                     b.HasIndex("AnalysisId");
 
                     b.ToTable("AnalysisSuggestions");
-                });
-
-            modelBuilder.Entity("ResumeAPI.Models.BlockedDevice", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatesAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeviceHash")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeviceHash")
-                        .IsUnique();
-
-                    b.ToTable("BlockedDevices");
-                });
-
-            modelBuilder.Entity("ResumeAPI.Models.BlockedIp", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("IpAddress")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IpAddress")
-                        .IsUnique();
-
-                    b.ToTable("BlockedIps");
                 });
 
             modelBuilder.Entity("ResumeAPI.Models.CourseRecommendation", b =>
@@ -577,66 +520,11 @@ namespace ResumeAPI.Migrations
                     b.ToTable("Skills");
                 });
 
-            modelBuilder.Entity("ResumeAPI.Models.UploadModerationEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<string>("Decision")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("DeviceHash")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
-
-                    b.Property<int>("RiskScoreImpact")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UploadModerationEvents");
-                });
-
             modelBuilder.Entity("ResumeAPI.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<int>("AbuseRiskScore")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -656,9 +544,6 @@ namespace ResumeAPI.Migrations
                     b.Property<bool>("IsEmailVerified")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsSuspended")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTime?>("OtpExpiry")
                         .HasColumnType("timestamp with time zone");
 
@@ -669,9 +554,6 @@ namespace ResumeAPI.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime?>("SuspendedUntil")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -937,16 +819,6 @@ namespace ResumeAPI.Migrations
                     b.Navigation("Resume");
                 });
 
-            modelBuilder.Entity("ResumeAPI.Models.UploadModerationEvent", b =>
-                {
-                    b.HasOne("ResumeAPI.Models.User", "User")
-                        .WithMany("ModerationEvents")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ResumeAPI.Models.UserCourseProgress", b =>
                 {
                     b.HasOne("ResumeAPI.Models.CourseRecommendation", "CourseRecommendation")
@@ -1048,8 +920,6 @@ namespace ResumeAPI.Migrations
                     b.Navigation("GeneratedResumes");
 
                     b.Navigation("JobDescriptions");
-
-                    b.Navigation("ModerationEvents");
 
                     b.Navigation("Resumes");
                 });

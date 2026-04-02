@@ -23,13 +23,14 @@ const InterviewPrep = lazy(() => import('./pages/InterviewPrep'));
 const SkillDetail = lazy(() => import('./pages/SkillDetail'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 
 /**
  * LoadingFallback - Minimal component to show during chunk loading
  * Designed to be ultra-lightweight for low-performance devices
  */
 const LoadingFallback = () => (
-  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+  <div className="min-h-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
     <div className="w-8 h-8 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
   </div>
 );
@@ -43,7 +44,7 @@ function AppContent() {
   const location = useLocation();
   
   return (
-    <div className="relative z-10 min-h-screen 
+    <div className="relative z-10 min-h-full 
                     bg-gray-50 text-gray-900 
                     dark:bg-slate-950 dark:text-white
                     transition-colors duration-500 flex flex-col">
@@ -62,7 +63,7 @@ function AppContent() {
                 Strictly animating only `opacity` and `transform` properties for 60fps hardware acceleration.
               */}
               <Route path="/" element={
-                 <div className="relative w-full h-full min-h-screen">
+                 <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="landing"
                       className="w-full h-full"
@@ -77,7 +78,7 @@ function AppContent() {
               } />
 
               <Route path="/login" element={
-                <div className="relative w-full h-full min-h-screen">
+                <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="login"
                       className="w-full h-full"
@@ -92,7 +93,7 @@ function AppContent() {
               } />
 
               <Route path="/register" element={
-                <div className="relative w-full h-full min-h-screen">
+                <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="register"
                       className="w-full h-full"
@@ -105,10 +106,25 @@ function AppContent() {
                     </motion.div>
                 </div>
               } />
+
+              <Route path="/forgot-password" element={
+                <div className="relative w-full h-full min-h-full">
+                    <motion.div 
+                      key="forgot-password"
+                      className="w-full h-full"
+                      initial={{ opacity: 0, y: 15 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      exit={{ opacity: 0, y: -15, position: 'absolute', top: 0, left: 0, right: 0 }} 
+                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+                    >
+                      <ForgotPassword />
+                    </motion.div>
+                </div>
+              } />
               
               <Route path="/upload" element={
                 <ProtectedRoute>
-                  <div className="relative w-full h-full min-h-screen">
+                  <div className="relative w-full h-full min-h-full">
                       <motion.div 
                         key="upload"
                         className="w-full h-full"
@@ -124,7 +140,7 @@ function AppContent() {
               } />
 
               <Route path="/dashboard" element={
-                <div className="relative w-full h-full min-h-screen">
+                <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="dashboard"
                       className="w-full h-full"
@@ -139,7 +155,7 @@ function AppContent() {
               } />
 
               <Route path="/learning-hub" element={
-                <div className="relative w-full h-full min-h-screen">
+                <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="learning"
                       className="w-full h-full"
@@ -154,7 +170,7 @@ function AppContent() {
               } />
 
               <Route path="/interview-prep" element={
-                <div className="relative w-full h-full min-h-screen">
+                <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="interview"
                       className="w-full h-full"
@@ -169,7 +185,7 @@ function AppContent() {
               } />
 
               <Route path="/skill/:skillName" element={
-                <div className="relative w-full h-full min-h-screen">
+                <div className="relative w-full h-full min-h-full">
                     <motion.div 
                       key="skill"
                       className="w-full h-full"

@@ -20,6 +20,21 @@ public class User
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // OTP and Email Verification
+    [MaxLength(256)]
+    public string? OtpHash { get; set; }
+    
+    public DateTime? OtpExpiry { get; set; }
+    
+    public bool IsEmailVerified { get; set; } = false;
+
+    // Abuse Enforcement
+    public int AbuseRiskScore { get; set; } = 0;
+    
+    public bool IsSuspended { get; set; } = false;
+    
+    public DateTime? SuspendedUntil { get; set; }
+
     // Navigation
     public ICollection<Resume> Resumes { get; set; } = new List<Resume>();
     public ICollection<JobDescription> JobDescriptions { get; set; } = new List<JobDescription>();
@@ -28,4 +43,5 @@ public class User
     public ICollection<UserCourseProgress> CourseProgresses { get; set; } = new List<UserCourseProgress>();
     public ICollection<GeneratedResume> GeneratedResumes { get; set; } = new List<GeneratedResume>();
     public ICollection<AnalysisHistory> AnalysisHistories { get; set; } = new List<AnalysisHistory>();
+    public ICollection<UploadModerationEvent> ModerationEvents { get; set; } = new List<UploadModerationEvent>();
 }

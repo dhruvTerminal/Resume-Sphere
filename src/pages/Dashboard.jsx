@@ -130,7 +130,7 @@ const Dashboard = () => {
   }, [data]);
 
   return (
-    <div className="relative min-h-screen pb-20 overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-1000">
+    <div className="relative w-full flex-1 overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-1000">
       {/* Sleek Universal Background */}
       <DotPatternBackground />
 
@@ -138,7 +138,7 @@ const Dashboard = () => {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="relative z-10 pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+        className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
       >
         <motion.div variants={itemVariants} className="text-center mb-16 space-y-4">
            <RoleBadge />

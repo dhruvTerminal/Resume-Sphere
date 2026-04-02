@@ -201,17 +201,28 @@ const Dashboard = () => {
 
                 {/* Quick Stats */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Matched Skills</span>
-                    <span className="text-lg font-black text-emerald-500">{matchedSkills.length}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800">
+                      <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Matched Skills</span>
+                      <span className="text-3xl font-black text-emerald-500">{matchedSkills.length}</span>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800">
+                      <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Missing Skills</span>
+                      <span className="text-3xl font-black text-red-500">{missingSkills.length}</span>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800">
+                      <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Missing Keywords</span>
+                      <span className="text-3xl font-black text-amber-500">{missingKeywords.length}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Missing Skills</span>
-                    <span className="text-lg font-black text-red-500">{missingSkills.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Missing Keywords</span>
-                    <span className="text-lg font-black text-amber-500">{missingKeywords.length}</span>
+
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <SecondaryButton onClick={() => navigate('/upload')} className="w-full">
+                      🔄 New Analysis
+                    </SecondaryButton>
+                    <PrimaryButton to="/history" className="w-full">
+                      📜 Analysis History
+                    </PrimaryButton>
                   </div>
                 </div>
               </div>
@@ -504,10 +515,6 @@ const Dashboard = () => {
           )}
         </AnimatePresence>
 
-        <div className="mt-20 pt-10 border-t border-slate-200 dark:border-white/5 flex gap-4">
-           <SecondaryButton onClick={() => navigate('/upload')}>🔄 New Analysis</SecondaryButton>
-           <PrimaryButton to="/history">📜 Analysis History</PrimaryButton>
-        </div>
       </div>
     </div>
   );

@@ -3,14 +3,12 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import DotPatternBackground from '../components/DotPatternBackground';
 import PrimaryButton from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
-
 import { loginUser } from '../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
@@ -24,24 +22,23 @@ const Login = () => {
       setError('Please fill in all fields.');
       return;
     }
-    
     setError('');
-    setIsLoading(true);
-
+    
     try {
-      const response = await loginUser({ email, password });
-      const { token, user } = response.data;
+      // Step 1: Speak to the real backend first
+      const response = await loginUser(email, password);
       
-      // Store in context (which persists to localStorage)
-      login(user, token);
+      // Step 2: Extract details
+      const { token, user: userData } = response.data;
       
-      // Navigate to intended destination
+      // Step 3: Populate context/storage
+      login(userData, token);
+      
+      // Step 4: Success! Navigate!
       navigate(redirectUrl);
     } catch (err) {
-      console.error('Login failed:', err);
-      setError(err.response?.data?.error || 'Authentication failed. Please check your credentials.');
-    } finally {
-      setIsLoading(false);
+      console.error('Authentication error:', err);
+      setError(err.response?.data?.error || 'Invalid email or password.');
     }
   };
 
@@ -81,6 +78,11 @@ const Login = () => {
                   className={`w-full bg-transparent border-b-2 ${error ? 'border-red-400/50 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-cyan-500 dark:focus:border-cyan-400'} py-3 px-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-colors duration-300 font-medium`}
                 />
               </div>
+              <div className="flex justify-end text-sm mt-1">
+                <Link to="/forgot-password" className="text-xs font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-cyan-400 transition-colors">
+                  Forgot Password?
+                </Link>
+              </div>
               {error && (
                 <div className="text-red-500 text-xs font-bold mt-2 px-2">
                   {error}
@@ -89,8 +91,8 @@ const Login = () => {
             </div>
 
             <div className="pt-4">
-              <PrimaryButton type="submit" className="w-full py-4 text-base" disabled={isLoading}>
-                {isLoading ? 'Authenticating...' : 'Authenticate'}
+              <PrimaryButton type="submit" className="w-full py-4 text-base">
+                Authenticate
               </PrimaryButton>
             </div>
           </form>

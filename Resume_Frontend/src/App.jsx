@@ -13,17 +13,19 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy loading for optimized initial performance
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const AnalysisHistory = lazy(() => import('./pages/AnalysisHistory'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const UploadResume = lazy(() => import('./pages/UploadResume'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const LearningHub = lazy(() => import('./pages/LearningHub'));
 const InterviewPrep = lazy(() => import('./pages/InterviewPrep'));
 const SkillDetail = lazy(() => import('./pages/SkillDetail'));
-const AnalysisHistory = lazy(() => import('./pages/AnalysisHistory'));
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
 
 /**
  * LoadingFallback - Minimal component to show during chunk loading
@@ -77,6 +79,23 @@ function AppContent() {
                  </div>
               } />
 
+              <Route path="/history" element={
+                <ProtectedRoute>
+                  <div className="relative w-full h-full min-h-screen">
+                      <motion.div 
+                        key="history"
+                        className="w-full h-full"
+                        initial={{ opacity: 0, y: 15 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        exit={{ opacity: 0, y: -15, position: 'absolute', top: 0, left: 0, right: 0 }} 
+                        transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+                      >
+                        <AnalysisHistory />
+                      </motion.div>
+                  </div>
+                </ProtectedRoute>
+              } />
+
               <Route path="/login" element={
                 <div className="relative w-full h-full min-h-screen">
                     <motion.div 
@@ -103,6 +122,21 @@ function AppContent() {
                       transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
                     >
                       <Register />
+                    </motion.div>
+                </div>
+              } />
+
+              <Route path="/forgot-password" element={
+                <div className="relative w-full h-full min-h-screen">
+                    <motion.div 
+                      key="forgot-password"
+                      className="w-full h-full"
+                      initial={{ opacity: 0, y: 15 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      exit={{ opacity: 0, y: -15, position: 'absolute', top: 0, left: 0, right: 0 }} 
+                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+                    >
+                      <ForgotPassword />
                     </motion.div>
                 </div>
               } />
@@ -184,20 +218,6 @@ function AppContent() {
                 </div>
               } />
               
-              <Route path="/history" element={
-                <ProtectedRoute>
-                  <div className="relative w-full h-full min-h-screen">
-                    <motion.div key="history" className="w-full h-full"
-                      initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -15, position: 'absolute', top: 0, left: 0, right: 0 }}
-                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
-                    >
-                      <AnalysisHistory />
-                    </motion.div>
-                  </div>
-                </ProtectedRoute>
-              } />
-              
               {/* Catch-all redirect to Home */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
@@ -220,10 +240,12 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
-          <Router>
-            <ScrollToTop />
-            <AppContent />
-          </Router>
+          <ErrorBoundary>
+            <Router>
+              <ScrollToTop />
+              <AppContent />
+            </Router>
+          </ErrorBoundary>
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>

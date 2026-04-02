@@ -61,5 +61,23 @@ export const getLearningResources = async () => {
   return await api.get('/learning-resources');
 };
 
+/**
+ * Send OTP for Password Reset
+ * @param {string} email - User's email
+ */
+export const sendOtp = async (email) => {
+  return await api.post('/auth/send-otp', { email });
+};
+
+/**
+ * Verify OTP and set New Password
+ * @param {string} email - User's email
+ * @param {string} otp - The 6-digit OTP
+ * @param {string} newPassword - The new password
+ */
+export const verifyOtp = async (email, otp, newPassword) => {
+  return await api.post('/auth/verify-otp', { email, otp, newPassword });
+};
+
 // Export default api instance for use in other files
 export default api;

@@ -20,10 +20,12 @@ builder.Services.AddScoped<IJobMatchService, JobMatchService>();
 builder.Services.AddScoped<ISkillGapService, SkillGapService>();
 builder.Services.AddScoped<ILearningResourceService, LearningResourceService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
 builder.Services.AddScoped<ILearningPlanService, LearningPlanService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IResumeGenerationService, ResumeGenerationService>();
+builder.Services.AddScoped<IUploadModerationService, UploadModerationService>();
 
 // ─── AI Service (Python FastAPI) ───────────────────────────────────────────────
 var aiServiceUrl = builder.Configuration.GetSection("AiService:BaseUrl").Value ?? "http://localhost:8000";

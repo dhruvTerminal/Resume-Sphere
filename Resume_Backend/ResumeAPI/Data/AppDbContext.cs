@@ -36,6 +36,11 @@ public class AppDbContext : DbContext
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
 
+    // ── Moderation & Abuse ─────────────────────────────────────────────────────
+    public DbSet<UploadModerationEvent> UploadModerationEvents => Set<UploadModerationEvent>();
+    public DbSet<BlockedDevice> BlockedDevices => Set<BlockedDevice>();
+    public DbSet<BlockedIp> BlockedIps => Set<BlockedIp>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -367,5 +372,33 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Skill>()
             .HasIndex(s => s.Name)
             .IsUnique();
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // MODERATION & ABUSE
+        // ══════════════════════════════════════════════════════════════════════════
+        modelBuilder.Entity<UploadModerationEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+            
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.ModerationEvents)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull); // Allow moderation events to persist if user is deleted, or use Cascade based on preference. Setting to Cascade might lose evidence. Let's use Cascade for simplicity.
+        });
+
+        // Let's change the above SetNull to Cascade since UserId is nullable, let's just make it SetNull if it's nullable. Actually I'll just change the config to OnDelete(SetNull), but EF Core might complain if we aren't careful. Let's just use SetNull since we made UserId nullable.
+        
+        modelBuilder.Entity<BlockedDevice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.DeviceHash).IsUnique(); 
+        });
+
+        modelBuilder.Entity<BlockedIp>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.IpAddress).IsUnique();
+        });
     }
 }

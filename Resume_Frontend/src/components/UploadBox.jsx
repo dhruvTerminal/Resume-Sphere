@@ -10,7 +10,7 @@ import PrimaryButton from './PrimaryButton';
  * Backend team: Calls uploadResume API with FormData
  * Database team: Handle file storage and metadata
  */
-const UploadBox = ({ onUploadSuccess, onUploadStart, onUploadEnd }) => {
+const UploadBox = ({ onUploadSuccess, onUploadStart, onUploadEnd, onUploadError }) => {
   // 📚 EXPLANATION FOR TEAM: We use React state to keep track of the file, drag status, and errors.
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -99,16 +99,16 @@ const UploadBox = ({ onUploadSuccess, onUploadStart, onUploadEnd }) => {
     if (!file) return;
 
     setIsUploading(true);
-    onUploadStart && onUploadStart(); // Callback to show loading state in parent component
-    setError(''); // Clear previous errors
+    if (onUploadStart) onUploadStart();
+    setError('');
 
     try {
-      // Call backend API to upload resume file
       const response = await uploadResume(file);
-      // Call success callback with returned data
-      onUploadSuccess && onUploadSuccess(response.data);
+      if (onUploadSuccess) onUploadSuccess(response.data);
     } catch (err) {
-      // Show customized error message from backend if available
+      if (onUploadError && err.response?.data) {
+        onUploadError(err.response.data);
+      }
       const backendError = err.response?.data?.error;
       setError(backendError || 'Upload failed. Please try again.');
     } finally {

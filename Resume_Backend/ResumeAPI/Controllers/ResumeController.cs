@@ -17,17 +17,20 @@ public class ResumeController : ControllerBase
     private readonly IResumeParserService _parser;
     private readonly ISkillExtractorService _extractor;
     private readonly IResumeGenerationService _generationService;
+    private readonly IUploadModerationService _moderationService;
 
     public ResumeController(
         AppDbContext db, 
         IResumeParserService parser, 
         ISkillExtractorService extractor, 
-        IResumeGenerationService generationService)
+        IResumeGenerationService generationService,
+        IUploadModerationService moderationService)
     {
         _db = db;
         _parser = parser;
         _extractor = extractor;
         _generationService = generationService;
+        _moderationService = moderationService;
     }
 
     /// <summary>Upload a resume (PDF or DOCX) and extract skills from it.</summary>
@@ -60,6 +63,55 @@ public class ResumeController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest(new { error = $"Failed to parse the file: {ex.Message}" });
+        }
+
+        // Add user validation & IP reading
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null)
+            return Unauthorized();
+            
+        if (user.IsSuspended)
+            return StatusCode(403, new { action = "force_logout", error = "Your account has been temporarily suspended due to repeated policy violations." });
+            
+        // Check Device/IP if necessary (using a simple check for example context)
+        string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        // Invoke Moderation Layer
+        var moderationResult = await _moderationService.EvaluateAsync(file, rawText);
+        
+        var modEvent = new UploadModerationEvent
+        {
+            UserId = userId,
+            FileName = file.FileName,
+            ContentType = file.ContentType,
+            Decision = moderationResult.Decision,
+            Reason = moderationResult.Reason,
+            RiskScoreImpact = moderationResult.RecommendedRiskIncrement,
+            IpAddress = ipAddress,
+            CreatedAt = DateTime.UtcNow
+        };
+        _db.UploadModerationEvents.Add(modEvent);
+        
+        if (moderationResult.RecommendedRiskIncrement > 0)
+        {
+            user.AbuseRiskScore += moderationResult.RecommendedRiskIncrement;
+            if (user.AbuseRiskScore > 100)
+            {
+                user.IsSuspended = true;
+                user.SuspendedUntil = DateTime.UtcNow.AddDays(7);
+            }
+        }
+
+        await _db.SaveChangesAsync();
+
+        if (!moderationResult.IsAllowed)
+        {
+            if (user.IsSuspended)
+            {
+                return StatusCode(403, new { action = "force_logout", error = "Your account has been temporarily suspended due to repeated policy violations." });
+            }
+            
+            return BadRequest(new { action = "blocked", error = $"Upload rejected: {moderationResult.Reason}" });
         }
 
         var resume = new Resume
