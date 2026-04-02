@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import traceback
+import os
 
 from services.resume_extractor import extract_resume_entities
 from services.jd_extractor import extract_jd_entities
@@ -184,4 +185,4 @@ async def generate_resume(request: GenerateResumeRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=False)

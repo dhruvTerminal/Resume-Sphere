@@ -197,3 +197,6 @@ A:
 - ✅ Professional styling
 
 ---
+## Railway Deployment
+
+For a full 3-service Railway deployment (Frontend + .NET API + FastAPI AI), follow [`DEPLOY_RAILWAY.md`](./DEPLOY_RAILWAY.md).
