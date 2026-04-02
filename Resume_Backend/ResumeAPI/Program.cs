@@ -5,6 +5,7 @@ using ResumeAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,11 +94,25 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ─── CORS ──────────────────────────────────────────────────────────────────────
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? (builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        ?? new[] { "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174" });
+
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174")
+    {
+        if (corsOrigins.Contains("*"))
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+            return;
+        }
+
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader()));
+              .AllowAnyHeader();
+    }));
 
 var app = builder.Build();
 

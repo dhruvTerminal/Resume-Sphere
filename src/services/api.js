@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Backend server URL - Update this if backend runs on different port/address
 // Example: 'http://192.168.1.100:5000' for network requests
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 // Create axios instance with base configuration
 // Allows us to make requests without repeating base URL in each call
